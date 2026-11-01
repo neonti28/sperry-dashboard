@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Predictive Maintenance - Volve BHA Failure</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="shell">
+
+  <header class="head">
+    <div>
+      <h1>Predictive Maintenance Dashboard</h1>
+      <p class="sub">
+        Prediksi kegagalan rangkaian pengeboran dari data sensor Volve. Tiga tab menyaring data menurut
+        sudut yang berbeda: ringkasan keseluruhan, satu sumur tertentu, atau satu engine tertentu.
+      </p>
+      <p class="sub" id="proto"></p>
+    </div>
+    <div class="prov" id="prov"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Saringan data">
+    <button class="tab" id="tabbtn-overview" role="tab" aria-selected="true" aria-controls="tab-overview"
+            data-tab="overview" type="button">Ringkasan</button>
+    <button class="tab" id="tabbtn-wells" role="tab" aria-selected="false" aria-controls="tab-wells"
+            data-tab="wells" type="button">Sumur</button>
+    <button class="tab" id="tabbtn-engines" role="tab" aria-selected="false" aria-controls="tab-engines"
+            data-tab="engines" type="button">Engine</button>
+  </nav>
+
+  <div id="boot">
+    <p class="src-note" id="src-note">memuat data...</p>
+    <div class="panel" id="err">
+      <h3>Data tidak termuat</h3>
+      <p>Permintaan ke <code>data/pm_full.json</code> gagal: <code id="err-msg"></code></p>
+      <p>Jalankan server lokal (<code>python3 serve.py</code>) atau pastikan cadangan
+        <code>data/pm_full.js</code> ikut dimuat.</p>
+      <button class="retry" id="retry" type="button">Coba lagi</button>
+    </div>
+  </div>
+
+  <!-- ===================== TAB: RINGKASAN ===================== -->
+  <div class="tabpanel" id="tab-overview" role="tabpanel" aria-labelledby="tabbtn-overview">
+    <section class="kpis" id="kpis"></section>
+
+    <div class="grid">
+      <section class="card wide">
+        <h2>Timeline kejadian per sumur</h2>
+        <p class="c-note">
+          Satu baris per sumur. Baris atas adalah kejadian aktual dari label, baris bawah adalah alarm
+          yang dikeluarkan model pada sumur yang sama. Alur waktu mengikuti tanggal pengeboran asli,
+          jadi celah panjang berarti jeda operasi, bukan data hilang.
+        </p>
+        <div class="legend">
+          <span><i style="background:var(--series-3)"></i>kejadian aktual</span>
+          <span><i style="background:var(--accent)"></i>alarm model</span>
+        </div>
+        <div class="chart" id="timeline-host"></div>
+        <div class="c-foot" id="timeline-foot"></div>
+      </section>
+
+      <section class="card wide">
+        <h2>Skor model terhadap waktu, dengan garis ambang</h2>
+        <p class="c-note" id="line-note"></p>
+        <div class="chips" id="well-chips"></div>
+        <div class="legend">
+          <span><i style="background:var(--series-2)"></i>skor model</span>
+          <span><i style="background:var(--accent)"></i>lajur alert</span>
+          <span><i style="background:var(--warn)"></i>ambang</span>
+        </div>
+        <div class="chart" id="line-host"></div>
+        <div class="c-foot" id="line-foot"></div>
+      </section>
+
+      <section class="card">
+        <h2>Sebaran skor: normal dibanding event</h2>
+        <p class="c-note">
+          Dua kurva kepadatan dari histogram skor. Kurva biru adalah titik normal, kurva jingga adalah
+          titik yang berada dekat kejadian. Semakin jauh kedua puncak, semakin mudah model memisahkan.
+        </p>
+        <div class="chart" id="hist-host"></div>
+        <div class="c-foot" id="hist-foot"></div>
+      </section>
+
+      <section class="card">
+        <h2>Perbandingan mesin prediksi</h2>
+        <p class="c-note">
+          Empat mesin diuji pada fold yang sama. Persistence menebak keadaan berikutnya sama dengan
+          keadaan sekarang. Rule memakai skor z dari torsi, hookload, dan penurunan laju tembus.
+        </p>
+        <div id="engine-bars"></div>
+        <div class="c-foot" id="engine-foot"></div>
+      </section>
+
+      <section class="card">
+        <h2>Kurva presisi dan recall</h2>
+        <p class="c-note">
+          Trade-off antara menangkap kejadian dan menekan alarm palsu, dihitung pada seluruh titik uji.
+        </p>
+        <div class="chart" id="pr-host"></div>
+        <div class="c-foot" id="pr-foot"></div>
+      </section>
+
+      <section class="card">
+        <h2>Hasil per kotak konfusi</h2>
+        <p class="c-note">
+          Empat kemungkinan hasil untuk setiap titik: benar event, alarm palsu, event lolos, benar normal.
+        </p>
+        <div class="confusion" id="confusion"></div>
+        <div class="c-foot" id="confusion-foot"></div>
+      </section>
+
+      <section class="card">
+        <h2>Peringkat kanal menurut SHAP</h2>
+        <p class="c-note">Dua belas kanal teratas, nilai mutlak rata-rata lintas semua fold.</p>
+        <div class="bars" id="shap-bars"></div>
+      </section>
+
+      <section class="card">
+        <h2>Mutu per sumur</h2>
+        <p class="c-note">
+          Satu ubin per sumur. Angka besar adalah PR-AUC fold itu, yaitu kemampuan model mengurutkan
+          titik berisiko di atas titik aman pada sumur yang tidak dipakai saat latihan.
+        </p>
+        <div class="kpis" id="fold-tiles"></div>
+        <div class="c-foot" id="fold-foot"></div>
+      </section>
+
+      <section class="card wide">
+        <h2>SHAP: kanal mana yang menggerakkan prediksi</h2>
+        <p class="c-note">
+          Kontribusi rata-rata nilai mutlak SHAP per kanal sensor, dipecah menurut sumur. Area yang
+          tinggi berarti kanal itu paling banyak mengubah skor model pada sumur tersebut.
+        </p>
+        <div class="chart" id="shap-host"></div>
+        <div class="c-foot" id="shap-foot"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ===================== TAB: SUMUR ===================== -->
+  <div class="tabpanel" id="tab-wells" role="tabpanel" aria-labelledby="tabbtn-wells" hidden>
+    <div class="split">
+      <section class="card list-card">
+        <h2>Pilih sumur</h2>
+        <p class="c-note">
+          Sembilan sumur yang pernah menjadi data uji pada salah satu engine. Klik satu sumur untuk
+          melihat hasil seluruh engine di sumur itu.
+        </p>
+        <div class="tile-list" id="well-list"></div>
+        <div class="c-foot" id="well-list-foot"></div>
+      </section>
+      <div class="detail-col" id="well-detail">
+        <section class="card">
+          <p class="c-note empty-state">Belum ada sumur dipilih. Pilih satu dari daftar di kiri.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB: ENGINE ===================== -->
+  <div class="tabpanel" id="tab-engines" role="tabpanel" aria-labelledby="tabbtn-engines" hidden>
+    <div class="split">
+      <section class="card list-card">
+        <h2>Pilih engine</h2>
+        <p class="c-note">
+          Sepuluh engine dari run capstone. Klik satu engine untuk melihat hasilnya di tiap sumur
+          beserta daftar head dan tingkat kepercayaannya.
+        </p>
+        <div class="tile-list" id="engine-list"></div>
+        <div class="c-foot" id="engine-list-foot"></div>
+      </section>
+      <div class="detail-col" id="engine-detail">
+        <section class="card">
+          <p class="c-note empty-state">Belum ada engine dipilih. Pilih satu dari daftar di kiri.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="tip-pop" role="tooltip" aria-hidden="true"></div>
+
+<script src="js/charts.js"></script>
+<script src="data/pm_full.js"></script>
+<script src="data/pm_data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

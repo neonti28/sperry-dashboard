@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sperry Drill Predictive Maintenance · Volve Field</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/sperry.css?v=78">
+</head>
+<body>
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand-block">
+      <div class="wordmark">HALLIBURTON<small>SPERRY DRILLING</small></div>
+    </div>
+
+    <div class="side-head">
+      <h1>Volve Field</h1>
+      <div class="kicker">Predictive Maintenance</div>
+    </div>
+
+    <nav class="side-nav" aria-label="Area kerja">
+      <button class="nav-item" type="button" data-view="operasi" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z"/><path d="M13 4h7v4h-7z"/><path d="M13 10h7v10h-7z"/><path d="M4 13h7v7H4z"/></svg>
+        <span class="lbl">Operasi</span>
+        <span class="count" data-count="operasi"></span>
+      </button>
+      <button class="nav-item" type="button" data-view="aset">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.4 8-8 9-4.6-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg>
+        <span class="lbl">Aset</span>
+        <span class="count" data-count="aset"></span>
+      </button>
+      <button class="nav-item" type="button" data-view="aksi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M15 5h3v15H6V5h3"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>
+        <span class="lbl">Aksi</span>
+        <span class="count" data-count="aksi"></span>
+      </button>
+      <button class="nav-item" type="button" data-view="keandalan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16"/><path d="M6 19V9"/><path d="M11 19V5"/><path d="M16 19v-7"/><path d="M4 9l5-4 5 3 6-5"/></svg>
+        <span class="lbl">Keandalan</span>
+        <span class="count" data-count="keandalan"></span>
+      </button>
+      <button class="nav-item" type="button" data-view="model">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 12l4-3"/><path d="M12 4v2"/><path d="M20 12h-2"/><path d="M12 20v-2"/><path d="M4 12h2"/></svg>
+        <span class="lbl">Model</span>
+        <span class="count" data-count="model"></span>
+      </button>
+    </nav>
+
+    <div class="side-panel">
+      <div class="sp-title">Kondisi armada</div>
+      <div id="side-health" class="sp-body"></div>
+      <div class="sp-title" style="margin-top:10px">Cakupan data</div>
+      <div id="side-cover" class="sp-body"></div>
+    </div>
+
+    <div class="side-foot">
+      <!-- Foto rig asli dari assets/rig-night.jpg, dipakai apa adanya (byte identik, tanpa crop
+           atau recolor di berkas). Ilustrasi garis lama dibuang karena itu gambar buatan tangan
+           yang menyamar sebagai aset raster yang diminta DESIGN.md. -->
+      <img class="derrick" src="assets/rig-night.jpg" alt="" aria-hidden="true"
+           width="1280" height="1707" decoding="async">
+      <span class="derrick-scrim" aria-hidden="true"></span>
+      <div class="side-facts">
+        <div class="side-fact"><b id="sf-asof">memuat</b><span>Tanggal acuan</span></div>
+        <div class="side-fact"><b id="sf-tel">memuat</b><span>Telemetri terakhir</span></div>
+        <div class="side-fact"><b id="sf-seed">memuat</b><span>Seed fabrikasi</span></div>
+      </div>
+      <div class="tagline">Solving Challenges Together</div>
+    </div>
+  </aside>
+
+  <header class="topbar">
+    <div class="tb-title">
+      <h2 id="tb-heading">Operasi</h2>
+      <span class="tb-sub" id="tb-sub">Drilling Operations Supervisor · Shift A 06:00-14:00</span>
+      <span class="tb-mini" id="tb-mini">Volve 15/9 · Laut Utara</span>
+    </div>
+    <div class="tb-right">
+      <div class="tb-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M15.5 15.5L20 20"/></svg>
+        <label for="q-search" class="sr-only" hidden>Cari aset</label>
+        <input id="q-search" type="search" placeholder="Cari aset, sumur, atau work order" autocomplete="off">
+      </div>
+      <button class="tb-bell" type="button" id="bell" aria-label="Buka tab Aksi berisi alert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 16V11a6 6 0 10-12 0v5l-2 3h16z"/><path d="M10 22h4"/></svg>
+        <span class="badge" id="bell-count">0</span>
+      </button>
+      <div class="tb-user">
+        <span class="avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="9" r="3.4"/><path d="M5.5 19.5c1.6-3 4-4.5 6.5-4.5s4.9 1.5 6.5 4.5"/></svg></span>
+        <span class="who"><b>Field Engineer</b><span>Sperry Drill · Maintenance</span></span>
+      </div>
+      <div class="tb-clock"><b id="clk-date">memuat</b><span id="clk-time">memuat</span></div>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <section class="view v-operasi" id="v-operasi" aria-label="Operasi"></section>
+    <section class="view v-aset" id="v-aset" aria-label="Aset" hidden></section>
+    <section class="view v-aksi" id="v-aksi" aria-label="Aksi" hidden></section>
+    <section class="view v-keandalan" id="v-keandalan" aria-label="Keandalan" hidden></section>
+    <section class="view v-model" id="v-model" aria-label="Model" hidden></section>
+  </main>
+
+  <footer class="footer">
+    <span class="fbrand">HALLIBURTON</span>
+    <span class="fver" id="foot-left">Sperry Drill · Predictive Maintenance Dashboard</span>
+    <span class="fright" id="foot-right">
+      <a href="index.html" style="color:inherit">versi fungsional</a>
+      <a href="legacy_engines.html" style="color:inherit">versi mesin</a>
+      <span>Angka dari payload capstone: TERUKUR / TURUNAN / SINTETIS</span>
+    </span>
+  </footer>
+</div>
+
+<script src="data/plant.js"></script>
+<script src="data/pm_full.js"></script>
+<script src="js/plantcharts.js?v=78"></script>
+<script src="js/sperry.js?v=78"></script>
+</body>
+</html>
